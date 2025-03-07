@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Cosmic Factory</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0d1b2a, #1b263b);
+            color: #e0e1dd;
+            text-align: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 36px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+            margin-bottom: 20px;
+        }
+        #container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        #resources {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 250px;
+        }
+        .resource {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #ffb703;
+            text-shadow: 0 0 5px #ffb703;
+        }
+        #energyCore {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, #00ffcc, #0099aa);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 20px #00ffcc;
+            margin: 20px auto;
+        }
+        #energyCore:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #00ffcc;
+        }
+        #energyCore:active {
+            transform: scale(0.95);
+        }
+        #actions, #saveLoad {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            margin: 5px;
+            background: linear-gradient(45deg, #415a77, #778da9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, #5271a0, #99b1d8);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            background: #e0e1dd;
+            color: #0d1b2a;
+        }
+        #saveCodeDisplay {
+            font-size: 14px;
+            word-wrap: break-word;
+            color: #00ffcc;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cosmic Factory</h1>
+    <div id="energyCore" onclick="clickEnergy()"></div>
+    <div id="container">
+        <div id="resources">
+            <div class="resource" id="energy">エネルギー: 0</div>
+            <div class="resource" id="metal">金属: 0</div>
+            <div class="resource" id="gas">ガス: 0</div>
+            <div class="resource" id="crystal">クリスタル: 0</div>
+            <div class="resource" id="money">お金: 0</div>
+            <div class="resource" id="relics">レリック: 0</div>
+            <div class="resource" id="crystalRelics">クリスタルレリック: 0</div>
+        </div>
+        <div id="actions">
+            <button onclick="buyDrone()">ドローン購入 (<span id="droneCost">10</span>)</button>
+            <button onclick="researchTech()">技術研究 (<span id="techCost">50</span>)</button>
+            <button onclick="prestigeReset()">銀河リセット</button>
+            <button onclick="upgradeMetal()">金属生産 (<span id="metalUpgradeCost">100</span>エネルギー)</button>
+            <button onclick="upgradeGas()">ガス生産 (<span id="gasUpgradeCost">200</span>エネルギー)</button>
+            <button onclick="upgradeCrystal()">クリスタル生産 (<span id="crystalUpgradeCost">300</span>エネルギー)</button>
+            <button onclick="buildSpaceship()">宇宙船建造 (金属: <span id="shipCostMetal">50</span>, ガス: <span id="shipCostGas">30</span>)</button>
+            <button onclick="buyRelic()">レリック購入 (<span id="relicCost">100</span> お金)</button>
+            <button onclick="createCrystalRelic()">クリスタルレリック生成 (<span id="crystalRelicCost">100</span> クリスタル, 1 レリック)</button>
+        </div>
+        <div id="saveLoad">
+            <button onclick="saveGame()">セーブコード発行</button><br>
+            <input type="text" id="loadCode" placeholder="セーブコードを入力">
+            <button onclick="loadGame()">ロード</button>
+            <p id="saveCodeDisplay"></p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://your-app-name.onrender.com"; // Renderで取得したURLに変更
+
+        function updateState() {
+            fetch(`${BACKEND_URL}/get_state`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('energy').innerText = 'エネルギー: ' + Math.floor(data.energy);
+                    document.getElementById('metal').innerText = '金属: ' + Math.floor(data.metal);
+                    document.getElementById('gas').innerText = 'ガス: ' + Math.floor(data.gas);
+                    document.getElementById('crystal').innerText = 'クリスタル: ' + Math.floor(data.crystal);
+                    document.getElementById('money').innerText = 'お金: ' + Math.floor(data.money);
+                    document.getElementById('relics').innerText = 'レリック: ' + data.relic_power;
+                    document.getElementById('crystalRelics').innerText = 'クリスタルレリック: ' + data.crystal_relics;
+                    document.getElementById('droneCost').innerText = data.drone_cost;
+                    document.getElementById('techCost').innerText = data.tech_cost;
+                    document.getElementById('shipCostMetal').innerText = data.spaceship_cost_metal;
+                    document.getElementById('shipCostGas').innerText = data.spaceship_cost_gas;
+                    document.getElementById('relicCost').innerText = data.relic_cost;
+                    document.getElementById('metalUpgradeCost').innerText = data.metal_upgrade_cost;
+                    document.getElementById('gasUpgradeCost').innerText = data.gas_upgrade_cost;
+                    document.getElementById('crystalUpgradeCost').innerText = data.crystal_upgrade_cost;
+                    document.getElementById('crystalRelicCost').innerText = data.crystal_relic_cost;
+                });
+        }
+
+        function clickEnergy() { fetch(`${BACKEND_URL}/click`, { method: 'POST' }).then(() => updateState()); }
+        function buyDrone() { fetch(`${BACKEND_URL}/buy_drone`, { method: 'POST' }).then(() => updateState()); }
+        function researchTech() { fetch(`${BACKEND_URL}/research_tech`, { method: 'POST' }).then(() => updateState()); }
+        function prestigeReset() { 
+            if (confirm('銀河リセットしますか？技術レベルに応じたボーナスを獲得します。')) {
+                fetch(`${BACKEND_URL}/prestige`, { method: 'POST' }).then(() => updateState());
+            }
+        }
+        function upgradeMetal() { fetch(`${BACKEND_URL}/upgrade_metal`, { method: 'POST' }).then(() => updateState()); }
+        function upgradeGas() { fetch(`${BACKEND_URL}/upgrade_gas`, { method: 'POST' }).then(() => updateState()); }
+        function upgradeCrystal() { fetch(`${BACKEND_URL}/upgrade_crystal`, { method: 'POST' }).then(() => updateState()); }
+        function buildSpaceship() { fetch(`${BACKEND_URL}/build_spaceship`, { method: 'POST' }).then(() => updateState()); }
+        function buyRelic() { fetch(`${BACKEND_URL}/buy_relic`, { method: 'POST' }).then(() => updateState()); }
+        function createCrystalRelic() { fetch(`${BACKEND_URL}/create_crystal_relic`, { method: 'POST' }).then(() => updateState()); }
+
+        function saveGame() {
+            fetch(`${BACKEND_URL}/save`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('saveCodeDisplay').innerText = 'セーブコード: ' + data.code;
+                });
+        }
+
+        function loadGame() {
+            let code = document.getElementById('loadCode').value;
+            fetch(`${BACKEND_URL}/load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            }).then(() => updateState());
+        }
+
+        setInterval(updateState, 1000);
+        updateState();
+    </script>
+</body>
+</html>
