@@ -7,7 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # GitHub Pagesからのリクエストを許可
 
-# ゲーム状態の管理（最後に更新した時間を追加）
+# ゲーム状態の管理
 game_state = {
     "energy": 0, "metal": 0, "gas": 0, "crystal": 0, "money": 0,
     "click_value": 1, "auto_drones": 0, "drone_cost": 10,
@@ -39,10 +39,9 @@ def get_state():
     update_production()
     return jsonify(game_state)
 
-# エネルギークリック
+# エネルギークリック（自動生産を呼ばず、エネルギーのみ増加）
 @app.route('/click', methods=['POST'])
 def click():
-    update_production()
     game_state["energy"] += game_state["click_value"] * game_state["prestige_bonus"]
     return '', 204
 
