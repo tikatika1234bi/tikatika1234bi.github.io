@@ -2,194 +2,438 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Cosmic Factory</title>
+    <title>Arcana Flame - Gacha & Account</title>
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0d1b2a, #1b263b);
-            color: #e0e1dd;
-            text-align: center;
-            min-height: 100vh;
-        }
-        h1 {
-            font-size: 36px;
-            color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
-            margin-bottom: 20px;
-        }
-        #container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-        #resources {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            min-width: 250px;
-        }
-        .resource {
-            font-size: 18px;
-            margin: 10px 0;
-            color: #ffb703;
-            text-shadow: 0 0 5px #ffb703;
-        }
-        #energyCore {
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, #00ffcc, #0099aa);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 20px #00ffcc;
-            margin: 20px auto;
-        }
-        #energyCore:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px #00ffcc;
-        }
-        #energyCore:active {
-            transform: scale(0.95);
-        }
-        #actions, #saveLoad {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            min-width: 300px;
-        }
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            margin: 5px;
-            background: linear-gradient(45deg, #415a77, #778da9);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        button:hover {
-            transform: translateY(-2px);
-            background: linear-gradient(45deg, #5271a0, #99b1d8);
-        }
-        button:active {
-            transform: translateY(1px);
-        }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            margin: 5px;
-            border-radius: 5px;
-            border: none;
-            background: #e0e1dd;
-            color: #0d1b2a;
-        }
-        #saveCodeDisplay {
-            font-size: 14px;
-            word-wrap: break-word;
-            color: #00ffcc;
-            margin-top: 10px;
-        }
+        /* --- ベーススタイル（前回と同じ） --- */
+        :root { --bg-color: #121212; --panel-bg: #1e1e1e; --text-color: #e0e0e0; --accent-blue: #5c97f7; --accent-red: #f75c5c; --highlight: #ffd700; }
+        body { margin: 0; background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none; }
+        #app { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; background: #000; border-left: 1px solid #333; border-right: 1px solid #333; }
+        .hidden { display: none !important; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        
+        /* --- ガチャ＆ログイン用スタイル --- */
+        #login-screen, #gacha-screen { text-align: center; }
+        .stone-display { font-size: 20px; color: var(--highlight); margin: 10px; border: 1px solid #444; padding: 5px 20px; border-radius: 20px; background: #222; }
+        .gacha-btn { padding: 15px 40px; font-size: 18px; background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; margin: 10px; box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
+        .gacha-btn:hover { transform: scale(1.05); }
+        .menu-btn { padding: 10px 20px; background: #444; color: #fff; margin: 5px; }
+        .gacha-result { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        .user-info { position: absolute; top: 10px; right: 10px; font-size: 12px; color: #888; z-index: 300; text-align: right;}
+
+        /* --- ゲーム内スタイル（前回準拠・省略版） --- */
+        .field-section { flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; padding: 5px; }
+        .enemy-area { background: rgba(100, 30, 30, 0.2); border-bottom: 2px solid #333; }
+        .player-area { background: rgba(30, 60, 100, 0.2); }
+        .row { display: flex; justify-content: center; gap: 10px; min-height: 120px; align-items: center; }
+        .hand-container { height: 130px; background: #0a0a0a; display: flex; justify-content: center; align-items: center; gap: 5px; overflow-x: auto; }
+        .slot { width: 80px; height: 110px; border: 2px dashed #444; border-radius: 6px; position: relative; transition: 0.2s; }
+        .card { width: 100%; height: 100%; background: var(--panel-bg); border: 2px solid #555; border-radius: 5px; display: flex; flex-direction: column; padding: 2px; font-size: 9px; cursor: pointer; position: relative; }
+        .card.unit { border-top: 4px solid #a3b1b5; }
+        .card.spell { border-top: 4px solid #b580d1; }
+        .card.reaction { border-top: 4px solid #e08e45; }
+        .card-name { font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; margin-bottom: 2px; }
+        .card-art { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(0,0,0,0.3); }
+        .card-stats { display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; padding: 0 2px; margin-top: auto;}
+        .val-atk { color: #ff7777; } .val-def { color: #77aaff; }
+        .center-hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; text-align: center;}
+        #phase-badge { background: var(--accent-blue); color: #fff; padding: 5px 20px; border-radius: 15px; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        #btn-next { pointer-events: auto; background: #eee; color: #111; padding: 8px 25px; font-size: 14px; }
+        #log-panel { position: absolute; bottom: 140px; right: 10px; width: 200px; height: 100px; background: rgba(0,0,0,0.8); border: 1px solid #444; overflow-y: auto; pointer-events: none; z-index: 50; font-size: 10px; color: #ccc; }
     </style>
 </head>
 <body>
-    <h1>Cosmic Factory</h1>
-    <div id="energyCore" onclick="clickEnergy()"></div>
-    <div id="container">
-        <div id="resources">
-            <div class="resource" id="energy">エネルギー: 0</div>
-            <div class="resource" id="metal">金属: 0</div>
-            <div class="resource" id="gas">ガス: 0</div>
-            <div class="resource" id="crystal">クリスタル: 0</div>
-            <div class="resource" id="money">お金: 0</div>
-            <div class="resource" id="relics">レリック: 0</div>
-            <div class="resource" id="crystalRelics">クリスタルレリック: 0</div>
-        </div>
-        <div id="actions">
-            <button onclick="buyDrone()">ドローン購入 (<span id="droneCost">10</span>)</button>
-            <button onclick="researchTech()">技術研究 (<span id="techCost">50</span>)</button>
-            <button onclick="prestigeReset()">銀河リセット</button>
-            <button onclick="upgradeMetal()">金属生産 (<span id="metalUpgradeCost">100</span>エネルギー)</button>
-            <button onclick="upgradeGas()">ガス生産 (<span id="gasUpgradeCost">200</span>エネルギー)</button>
-            <button onclick="upgradeCrystal()">クリスタル生産 (<span id="crystalUpgradeCost">300</span>エネルギー)</button>
-            <button onclick="buildSpaceship()">宇宙船建造 (金属: <span id="shipCostMetal">50</span>, ガス: <span id="shipCostGas">30</span>)</button>
-            <button onclick="buyRelic()">レリック購入 (<span id="relicCost">100</span> お金)</button>
-            <button onclick="createCrystalRelic()">クリスタルレリック生成 (<span id="crystalRelicCost">100</span> クリスタル, 1 レリック)</button>
-        </div>
-        <div id="saveLoad">
-            <button onclick="saveGame()">セーブコード発行</button><br>
-            <input type="text" id="loadCode" placeholder="セーブコードを入力">
-            <button onclick="loadGame()">ロード</button>
-            <p id="saveCodeDisplay"></p>
-        </div>
+
+<!-- ユーザー情報表示 -->
+<div class="user-info">
+    <span id="user-name">Guest</span><br>
+    💎 <span id="user-stones">0</span>
+</div>
+
+<!-- 1. ログイン画面 -->
+<div id="login-screen" class="overlay">
+    <h1>ARCANA FLAME</h1>
+    <p>オンライン・データ保存対応版</p>
+    <button class="gacha-btn" onclick="Auth.login()">Googleでログイン</button>
+    <p style="font-size:12px; color:#aaa; margin-top:20px;">※ログインするとデータが保存されます</p>
+</div>
+
+<!-- 2. メニュー＆ガチャ画面 -->
+<div id="menu-screen" class="overlay hidden">
+    <h2>MAIN MENU</h2>
+    <div class="stone-display">所持魔法石: <span id="menu-stones">0</span></div>
+    
+    <div style="border:1px solid #444; padding:20px; border-radius:10px; background:#222; margin-bottom:20px;">
+        <h3>🔮 カードパックガチャ</h3>
+        <p style="font-size:12px; color:#aaa;">1回 100石 / 全26種</p>
+        <button class="gacha-btn" onclick="Gacha.pull()">ガチャを引く (100💎)</button>
+        <button class="menu-btn" onclick="Gacha.addFreeStones()">ログインボーナス受取 (+500💎)</button>
     </div>
 
-    <script>
-        const BACKEND_URL = "https://tikatika1234bi-github-io.onrender.com"; // Renderで取得したURLに変更
+    <div class="gacha-result" id="gacha-result"></div>
 
-        function updateState() {
-            fetch(`${BACKEND_URL}/get_state`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('energy').innerText = 'エネルギー: ' + Math.floor(data.energy);
-                    document.getElementById('metal').innerText = '金属: ' + Math.floor(data.metal);
-                    document.getElementById('gas').innerText = 'ガス: ' + Math.floor(data.gas);
-                    document.getElementById('crystal').innerText = 'クリスタル: ' + Math.floor(data.crystal);
-                    document.getElementById('money').innerText = 'お金: ' + Math.floor(data.money);
-                    document.getElementById('relics').innerText = 'レリック: ' + data.relic_power;
-                    document.getElementById('crystalRelics').innerText = 'クリスタルレリック: ' + data.crystal_relics;
-                    document.getElementById('droneCost').innerText = data.drone_cost;
-                    document.getElementById('techCost').innerText = data.tech_cost;
-                    document.getElementById('shipCostMetal').innerText = data.spaceship_cost_metal;
-                    document.getElementById('shipCostGas').innerText = data.spaceship_cost_gas;
-                    document.getElementById('relicCost').innerText = data.relic_cost;
-                    document.getElementById('metalUpgradeCost').innerText = data.metal_upgrade_cost;
-                    document.getElementById('gasUpgradeCost').innerText = data.gas_upgrade_cost;
-                    document.getElementById('crystalUpgradeCost').innerText = data.crystal_upgrade_cost;
-                    document.getElementById('crystalRelicCost').innerText = data.crystal_relic_cost;
-                });
-        }
+    <div style="margin-top:30px;">
+        <h3>⚔️ デッキ選択してバトル</h3>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="menu-btn" onclick="Game.start(0)">烈火のドラゴン</button>
+            <button class="menu-btn" onclick="Game.start(1)">技巧の魔術師</button>
+            <button class="menu-btn" onclick="Game.start(2)">鉄壁のビースト</button>
+        </div>
+    </div>
+</div>
 
-        function clickEnergy() { fetch(`${BACKEND_URL}/click`, { method: 'POST' }).then(() => updateState()); }
-        function buyDrone() { fetch(`${BACKEND_URL}/buy_drone`, { method: 'POST' }).then(() => updateState()); }
-        function researchTech() { fetch(`${BACKEND_URL}/research_tech`, { method: 'POST' }).then(() => updateState()); }
-        function prestigeReset() { 
-            if (confirm('銀河リセットしますか？技術レベルに応じたボーナスを獲得します。')) {
-                fetch(`${BACKEND_URL}/prestige`, { method: 'POST' }).then(() => updateState());
+<!-- 3. ゲーム画面 -->
+<div id="game-app" class="hidden">
+    <div class="field-section enemy-area">
+        <div style="position:absolute; top:5px; left:5px; font-size:12px;">CPU LP: <span id="cpu-lp">12</span></div>
+        <div class="row" id="cpu-units"><div class="slot" data-i="0"></div><div class="slot" data-i="1"></div><div class="slot" data-i="2"></div></div>
+        <div class="row" id="cpu-reacts" style="min-height:80px;"><div class="slot reaction" data-i="0"></div><div class="slot reaction" data-i="1"></div></div>
+    </div>
+    <div class="center-hud">
+        <div id="phase-badge">START</div>
+        <button id="btn-next" onclick="Game.nextPhase()">Start</button>
+    </div>
+    <div class="field-section player-area">
+        <div class="row" id="player-reacts" style="min-height:80px;"><div class="slot reaction" data-i="0"></div><div class="slot reaction" data-i="1"></div></div>
+        <div class="row" id="player-units"><div class="slot" data-i="0"></div><div class="slot" data-i="1"></div><div class="slot" data-i="2"></div></div>
+        <div style="position:absolute; bottom:5px; left:5px; font-size:12px;">YOU LP: <span id="player-lp">12</span></div>
+    </div>
+    <div class="hand-container" id="player-hand"></div>
+    <div id="log-panel"></div>
+    <button class="menu-btn" style="position:absolute; top:5px; left:5px; z-index:300;" onclick="location.reload()">RETIRE</button>
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCNgyBeSzbc74e6iWNnY0irswl24ciAfcg",
+  authDomain: "arcana-flame-game.firebaseapp.com",
+  projectId: "arcana-flame-game",
+  storageBucket: "arcana-flame-game.firebasestorage.app",
+  messagingSenderId: "562804440230",
+  appId: "1:562804440230:web:26f7bd08ea47d39ad80867",
+  measurementId: "G-XT2EDR06R1"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+    // Firebaseコンソール > プロジェクトの設定 > マイアプリ > Web > SDKの設定
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    // あなたのFirebase設定に書き換えてください
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // グローバル変数として公開（HTMLボタンから呼ぶため）
+    window.Auth = {
+        user: null,
+        async login() {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                // ログイン成功時の処理は onAuthStateChanged で行います
+            } catch (error) {
+                console.error("Login Failed:", error);
+                alert("ログインに失敗しました。ローカルサーバーで実行していますか？(file://では動作しません)");
             }
         }
-        function upgradeMetal() { fetch(`${BACKEND_URL}/upgrade_metal`, { method: 'POST' }).then(() => updateState()); }
-        function upgradeGas() { fetch(`${BACKEND_URL}/upgrade_gas`, { method: 'POST' }).then(() => updateState()); }
-        function upgradeCrystal() { fetch(`${BACKEND_URL}/upgrade_crystal`, { method: 'POST' }).then(() => updateState()); }
-        function buildSpaceship() { fetch(`${BACKEND_URL}/build_spaceship`, { method: 'POST' }).then(() => updateState()); }
-        function buyRelic() { fetch(`${BACKEND_URL}/buy_relic`, { method: 'POST' }).then(() => updateState()); }
-        function createCrystalRelic() { fetch(`${BACKEND_URL}/create_crystal_relic`, { method: 'POST' }).then(() => updateState()); }
+    };
 
-        function saveGame() {
-            fetch(`${BACKEND_URL}/save`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('saveCodeDisplay').innerText = 'セーブコード: ' + data.code;
-                });
+    // ユーザーの状態監視
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            window.Auth.user = user;
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+            
+            // データベースからユーザー情報を取得（なければ作成）
+            await Gacha.loadUserData(user.uid);
         }
+    });
 
-        function loadGame() {
-            let code = document.getElementById('loadCode').value;
-            fetch(`${BACKEND_URL}/load`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-            }).then(() => updateState());
+    window.Gacha = {
+        stones: 0,
+        collection: [], // 持っているカードIDリスト
+
+        async loadUserData(uid) {
+            const userRef = doc(db, "users", uid);
+            const docSnap = await getDoc(userRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                this.stones = data.stones || 0;
+                this.collection = data.collection || [];
+            } else {
+                // 初回登録：石3000個プレゼント
+                this.stones = 3000;
+                this.collection = [];
+                await setDoc(userRef, { stones: 3000, collection: [] });
+            }
+            this.updateDisplay();
+        },
+
+        updateDisplay() {
+            document.getElementById('user-stones').innerText = this.stones;
+            document.getElementById('menu-stones').innerText = this.stones;
+        },
+
+        async addFreeStones() {
+            if(!window.Auth.user) return;
+            const uid = window.Auth.user.uid;
+            const userRef = doc(db, "users", uid);
+            
+            // 画面反映
+            this.stones += 500;
+            this.updateDisplay();
+            
+            // DB保存
+            await updateDoc(userRef, {
+                stones: increment(500)
+            });
+            alert("ログインボーナス 500個を受け取りました！");
+        },
+
+        async pull() {
+            if (this.stones < 100) {
+                alert("石が足りません！");
+                return;
+            }
+
+            // 石を消費
+            this.stones -= 100;
+            this.updateDisplay();
+
+            // 抽選ロジック（DBキー一覧からランダム）
+            const keys = Object.keys(DB);
+            const hitId = keys[Math.floor(Math.random() * keys.length)];
+            const cardData = DB[hitId];
+
+            // コレクションに追加
+            this.collection.push(hitId);
+
+            // DB更新
+            const uid = window.Auth.user.uid;
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, {
+                stones: increment(-100),
+                collection: arrayUnion(hitId)
+            });
+
+            // 結果表示
+            const resDiv = document.getElementById('gacha-result');
+            resDiv.innerHTML = `
+                <div style="text-align:center; animation: pop 0.5s;">
+                    <div style="font-size:12px; color:#888;">GET!</div>
+                    <div class="card ${cardData.type === TYPE.UNIT ? 'unit' : (cardData.type === TYPE.SPELL ? 'spell' : 'reaction')}" style="width:80px; height:110px; margin:0 auto;">
+                        <div class="card-name">${cardData.name}</div>
+                        <div class="card-art">${cardData.icon}</div>
+                        <div class="card-stats">
+                            ${cardData.type===TYPE.UNIT ? `<span class="val-atk">⚔${cardData.atk}</span><span class="val-def">🛡${cardData.def}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+    };
+</script>
 
-        setInterval(updateState, 1000);
-        updateState();
-    </script>
+<script>
+    // --- 以下、前回のゲームロジック（Game, UI, AI など） ---
+    // ※長いので既存のロジックをそのまま使用しますが、Game.start()で画面切り替えを追加します
+
+    const TYPE = { UNIT: 'UNIT', SPELL: 'SPELL', REACT: 'REACT' };
+    const TARGET = { NONE: 'NONE', ENEMY: 'ENEMY', ALLY: 'ALLY', ANY: 'ANY' };
+    const PHASE = { DRAW: 'DRAW', MAIN: 'MAIN', BATTLE: 'BATTLE', END: 'END' };
+
+    // DB: 前回のデータと同じものを使用
+    const DB = {
+        'd01': { name: 'フレイム・ドラゴン', type: TYPE.UNIT, atk: 3, def: 3, icon: '🐲', desc: '-', target: TARGET.NONE },
+        'd02': { name: 'ボルカニック・ワイバーン', type: TYPE.UNIT, atk: 4, def: 2, icon: '🦖', desc: '-', target: TARGET.NONE },
+        'd03': { name: 'ガードスケイル・ドラゴン', type: TYPE.UNIT, atk: 2, def: 5, icon: '🛡️', desc: '-', target: TARGET.NONE },
+        'd04': { name: 'ルビーホーン・ドラゴン', type: TYPE.UNIT, atk: 3, def: 4, icon: '🐂', desc: '-', target: TARGET.NONE },
+        'd05': { name: 'ソーラーブレイズ', type: TYPE.UNIT, atk: 5, def: 3, icon: '🌞', desc: '召喚:敵2ダメ', effect: 'dmg_2', target: TARGET.NONE },
+        's01': { name: 'ドラゴン・フォース', type: TYPE.SPELL, icon: '💪', desc: '味方ATK+2(T)', effect: 'buff_atk_2_turn', target: TARGET.ALLY },
+        's02': { name: 'フレイムバースト', type: TYPE.SPELL, icon: '🔥', desc: '敵3ダメ', effect: 'dmg_3', target: TARGET.ENEMY },
+        's03': { name: '熱風の号令', type: TYPE.SPELL, icon: '🌬️', desc: '全味方ATK+1(T)', effect: 'all_atk_1_turn', target: TARGET.NONE },
+        'r01': { name: 'ドラゴンの咆哮', type: TYPE.REACT, icon: '📢', desc: '被弾:ATK+1(T)', trigger: 'attacked', effect: 'react_atk_1' },
+        'm01': { name: 'アーク・アプレンティス', type: TYPE.UNIT, atk: 2, def: 2, icon: '🧙', desc: '召喚:味方DEF+1', effect: 'buff_def_1', target: TARGET.NONE },
+        'm02': { name: 'クロノマンサー', type: TYPE.UNIT, atk: 1, def: 3, icon: '⏳', desc: '永続:魔軽減1', passive: 'spell_resist', target: TARGET.NONE },
+        'm03': { name: 'ルーン・エンチャンター', type: TYPE.UNIT, atk: 2, def: 3, icon: '✨', desc: '永続:味方ATK+1', passive: 'aura_atk_1', target: TARGET.NONE },
+        'm04': { name: 'マギア・ストラテジスト', type: TYPE.UNIT, atk: 3, def: 2, icon: '📖', desc: '召喚:1ドロー', effect: 'draw_1', target: TARGET.NONE },
+        'm05': { name: '大賢者オルディン', type: TYPE.UNIT, atk: 4, def: 4, icon: '👴', desc: '召喚:敵DEF-2', effect: 'debuff_def_2', target: TARGET.NONE },
+        's11': { name: '封印の閃光', type: TYPE.SPELL, icon: '🔒', desc: '敵攻撃不可(T)', effect: 'lock', target: TARGET.ENEMY },
+        's12': { name: 'ディスジャンクション', type: TYPE.SPELL, icon: '🚫', desc: '敵ATK0(T)', effect: 'zero_atk', target: TARGET.ENEMY },
+        's13': { name: '魔導解析', type: TYPE.SPELL, icon: '📚', desc: '2ドロー', effect: 'draw_2', target: TARGET.NONE },
+        's14': { name: 'マナシールド', type: TYPE.SPELL, icon: '🛡️', desc: '味方破壊無効(T)', effect: 'shield', target: TARGET.ALLY },
+        'r11': { name: '反転の結界', type: TYPE.REACT, icon: '🛑', desc: '魔法無効化', trigger: 'spell', effect: 'negate' },
+        'r12': { name: 'アストラルサイクル', type: TYPE.REACT, icon: '🌌', desc: '敵3体:2体戻す', trigger: 'full_field', effect: 'bounce_2' },
+        'b01': { name: 'シールドベア', type: TYPE.UNIT, atk: 2, def: 5, icon: '🐻', desc: '-', target: TARGET.NONE },
+        'b02': { name: 'アイアンファング', type: TYPE.UNIT, atk: 3, def: 4, icon: '🐺', desc: '-', target: TARGET.NONE },
+        'b03': { name: 'リペアホーン', type: TYPE.UNIT, atk: 1, def: 4, icon: '🦄', desc: '召喚:味方DEF+2', effect: 'buff_def_2', target: TARGET.NONE },
+        'b04': { name: 'ロックジャウ', type: TYPE.UNIT, atk: 3, def: 6, icon: '🗿', desc: '-', target: TARGET.NONE },
+        'b05': { name: 'タイタン', type: TYPE.UNIT, atk: 4, def: 7, icon: '👹', desc: '反撃2ダメ', passive: 'reflect', target: TARGET.NONE },
+        's21': { name: 'フォートレス', type: TYPE.SPELL, icon: '🏰', desc: '味方DEF+3', effect: 'buff_def_3', target: TARGET.ALLY },
+        's22': { name: 'アイアンスマッシュ', type: TYPE.SPELL, icon: '🔨', desc: '敵2or4ダメ', effect: 'cond_dmg', target: TARGET.ENEMY },
+        's23': { name: 'バリアフィールド', type: TYPE.SPELL, icon: '🌐', desc: '全味方DEF+1(T)', effect: 'all_def_1_turn', target: TARGET.NONE },
+        'r21': { name: '堅牢なる反撃', type: TYPE.REACT, icon: '⚔️', desc: '被弾:敵2ダメ', trigger: 'attacked', effect: 'react_dmg_2' }
+    };
+
+    // デッキリスト（固定）
+    const DECK_LISTS = [
+        ['d01','d01','d01', 'd02','d02','d02', 'd03','d03', 'd04','d04', 'd05','d05', 's01','s01', 's02','s02', 's03','s03', 'r01','r01'],
+        ['m01','m01','m01', 'm02','m02', 'm03','m03','m03', 'm04','m04', 'm05','m05', 's11','s11', 's12','s12', 's13', 's14', 'r11', 'r12'],
+        ['b01','b01','b01', 'b02','b02','b02', 'b03','b03', 'b04','b04', 'b05','b05', 's21','s21', 's22','s22', 's23','s23', 'r21','r21']
+    ];
+
+    class Card {
+        constructor(id, owner) {
+            this.id = id; this.data = DB[id]; this.owner = owner;
+            this.uid = Math.random().toString(36).substr(2, 9);
+            this.baseAtk = this.data.atk || 0; this.baseDef = this.data.def || 0;
+            this.atkModPermanent = 0; this.atkModTurn = 0; this.defModPermanent = 0; this.defModTurn = 0; this.damageTaken = 0;
+            this.canAttack = true; this.hasAttacked = false; this.isLocked = false; this.destructionImmune = false;
+        }
+        get atk() { return Math.max(0, this.baseAtk + this.atkModPermanent + this.atkModTurn + (this.passiveAtk || 0)); }
+        get def() { return (this.baseDef + this.defModPermanent + this.defModTurn) - this.damageTaken; }
+        resetTurn() { this.hasAttacked = false; this.canAttack = !this.isLocked; this.isLocked = false; this.destructionImmune = false; this.atkModTurn = 0; this.defModTurn = 0; }
+    }
+
+    const Game = {
+        player: null, cpu: null, turn: 'player', phase: PHASE.DRAW, selectedCard: null, selectedUnit: null, gameOver: false, firstTurn: true,
+
+        start(deckIdx) {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-app').classList.remove('hidden');
+            
+            const createPlayer = (id, dIdx) => ({ id, lp: 12, deck: this.shuffle(DECK_LISTS[dIdx].map(cid => new Card(cid, id))), hand: [], units: [null, null, null], reacts: [null, null], summonCount: 0 });
+            this.player = createPlayer('player', deckIdx);
+            let cpuDeckIdx = (deckIdx + 1 + Math.floor(Math.random()*2)) % 3;
+            this.cpu = createPlayer('cpu', cpuDeckIdx);
+
+            for(let i=0; i<4; i++) { this.draw(this.player); this.draw(this.cpu); }
+            this.turn = Math.random() < 0.5 ? 'player' : 'cpu';
+            UI.log(`Game Start! 先攻: ${this.turn.toUpperCase()}`);
+            this.startTurn();
+        },
+        shuffle(arr) { for(let i=arr.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; },
+        draw(p, amt=1) { for(let i=0; i<amt; i++) { if(p.deck.length > 0) p.hand.push(p.deck.pop()); else this.endGame(p.id === 'player' ? 'cpu' : 'player'); } },
+        startTurn() {
+            this.phase = PHASE.DRAW;
+            const p = this.turn === 'player' ? this.player : this.cpu;
+            p.summonCount = 0;
+            [this.player, this.cpu].forEach(pl => pl.units.forEach(u => { if(u) u.resetTurn(); }));
+            this.updateStats(); UI.update();
+            setTimeout(() => {
+                if(this.firstTurn) { this.firstTurn = false; UI.log("先攻1T:ドロースキップ"); } else { this.draw(p); }
+                this.phase = PHASE.MAIN; UI.update();
+                if(this.turn === 'cpu') AI.act();
+            }, 800);
+        },
+        nextPhase() {
+            if(this.gameOver) return;
+            if(this.phase === PHASE.MAIN) { this.phase = PHASE.BATTLE; UI.update(); if(this.turn === 'cpu') AI.battle(); }
+            else if(this.phase === PHASE.BATTLE) { this.phase = PHASE.END; this.turn = this.turn === 'player' ? 'cpu' : 'player'; this.startTurn(); }
+        },
+        playCard(p, handIdx, targetUnit=null, slotIdx=null) {
+            const card = p.hand[handIdx]; if(!card) return;
+            if(card.data.type === TYPE.UNIT) {
+                if(p.summonCount >= 2) { UI.log("召喚権なし"); return; }
+                if(p.units[slotIdx] !== null || p.units.some(u => u && u.data.name === card.data.name)) { UI.log("召喚不可"); return; }
+            }
+            const opp = p.id === 'player' ? this.cpu : this.player;
+            if(card.data.type === TYPE.SPELL && this.checkReaction('spell', opp, null)) { p.hand.splice(handIdx, 1); UI.log("無効化"); UI.update(); return; }
+            p.hand.splice(handIdx, 1);
+            if(card.data.type === TYPE.UNIT) { p.units[slotIdx] = card; p.summonCount++; UI.log(`召喚:${card.data.name}`); this.resolveEffect(card, p, null); this.checkReaction('full_field', opp, null); }
+            else if(card.data.type === TYPE.SPELL) { UI.log(`発動:${card.data.name}`); this.resolveEffect(card, p, targetUnit); }
+            else if(card.data.type === TYPE.REACT) { p.reacts[slotIdx] = card; UI.log(`セット:${card.data.name}`); }
+            this.updateStats(); UI.update();
+        },
+        attack(attacker, targetIdx) {
+            if(!attacker.canAttack || attacker.hasAttacked) return;
+            attacker.hasAttacked = true;
+            const defOwner = attacker.owner === 'player' ? this.cpu : this.player;
+            const defender = targetIdx === -1 ? null : defOwner.units[targetIdx];
+            if(defender && this.checkReaction('attacked', defOwner, defender)) { if(!attacker) return; }
+            if(!defender) {
+                if(defOwner.units.some(u => u !== null)) { UI.log("壁あり"); return; }
+                UI.log(`${attacker.data.name} 直接攻撃`); this.damagePlayer(defOwner, attacker.atk);
+            } else {
+                UI.log(`戦闘:${attacker.atk} vs ${defender.def}`);
+                if(defender.data.passive === 'reflect') { UI.log("反撃"); this.damageUnit(attacker, 2); }
+                if(attacker.atk > defender.def) { UI.log("撃破"); this.destroyUnit(defender); }
+                else if (attacker.atk < defender.def) { UI.log("返り討ち"); this.destroyUnit(attacker); }
+                else { UI.log("相打ち"); this.destroyUnit(attacker); this.destroyUnit(defender); }
+            }
+            this.updateStats(); UI.update();
+        },
+        resolveEffect(card, user, target) {
+            const eff = card.data.effect; if(!eff) return;
+            const opp = user.id === 'player' ? this.cpu : this.player;
+            if(eff==='dmg_2') { const t = this.findBestTarget(opp.units, 'ATK'); if(t) this.damageUnit(t, 2); }
+            else if(eff==='buff_def_1') card.defModPermanent += 1;
+            else if(eff==='debuff_def_2') { const t = this.findBestTarget(opp.units, 'DEF'); if(t) this.damageUnit(t, 2); }
+            else if(eff==='draw_1') this.draw(user, 1);
+            else if(eff==='buff_def_2') card.defModPermanent += 2;
+            else if(eff==='buff_atk_2_turn' && target) target.atkModTurn += 2;
+            else if(eff==='dmg_3' && target) this.damageUnit(target, 3);
+            else if(eff==='all_atk_1_turn') user.units.forEach(u=>{if(u) u.atkModTurn += 1;});
+            else if(eff==='lock' && target) target.isLocked = true;
+            else if(eff==='zero_atk' && target) target.atkModTurn = -target.baseAtk - target.atkModPermanent;
+            else if(eff==='draw_2') this.draw(user, 2);
+            else if(eff==='shield' && target) target.destructionImmune = true;
+            else if(eff==='buff_def_3' && target) target.defModPermanent += 3;
+            else if(eff==='cond_dmg' && target) { this.damageUnit(target, target.def >= 5 ? 4 : 2); }
+            else if(eff==='all_def_1_turn') user.units.forEach(u=>{if(u) u.defModTurn += 1;});
+            else if(eff==='react_atk_1' && target) target.atkModTurn += 1;
+            else if(eff==='react_dmg_2') { const t = this.findBestTarget(opp.units, 'ATK'); if(t) this.damageUnit(t, 2); }
+            else if(eff==='bounce_2') { let b = opp.units.filter(u=>u); for(let i=0;i<2;i++){ if(b.length===0)break; const idx=Math.floor(Math.random()*b.length); this.bounceUnit(b[idx]); b.splice(idx,1); } }
+        },
+        checkReaction(trigger, owner, targetUnit) {
+            const idx = owner.reacts.findIndex(r => r && r.data.trigger === trigger); if(idx === -1) return false;
+            const r = owner.reacts[idx];
+            if(trigger==='full_field') { const opp = owner.id === 'player' ? this.cpu : this.player; if(opp.units.filter(u=>u).length < 3) return false; }
+            UI.log(`罠:${r.data.name}`); this.resolveEffect(r, owner, targetUnit); owner.reacts[idx] = null; return true;
+        },
+        updateStats() {
+            [this.player, this.cpu].forEach(p => {
+                const hasEnchanter = p.units.some(u => u && u.data.passive === 'aura_atk_1');
+                p.units.forEach(u => { if(u) u.passiveAtk = hasEnchanter ? 1 : 0; });
+            });
+        },
+        damageUnit(u, amt) { if(u.data.passive === 'spell_resist') amt = Math.max(0, amt - 1); if(u.destructionImmune) { UI.log("無効"); return; } u.damageTaken += amt; if(u.def <= 0) this.destroyUnit(u); },
+        damagePlayer(p, amt) { p.lp -= amt; UI.update(); if(p.lp <= 0) this.endGame(p.id==='player'?'cpu':'player'); },
+        destroyUnit(u) { if(u.destructionImmune){ UI.log("無効"); return; } const o = u.owner === 'player' ? this.player : this.cpu; const i = o.units.indexOf(u); if(i !== -1) o.units[i] = null; },
+        bounceUnit(u) { const o = u.owner === 'player' ? this.player : this.cpu; const i = o.units.indexOf(u); if(i !== -1) { o.units[i] = null; o.hand.push(new Card(u.id, u.owner)); UI.log("バウンス"); } },
+        findBestTarget(units, criteria) { const v = units.filter(u=>u); if(v.length===0) return null; if(criteria==='ATK') return v.sort((a,b)=>b.atk-a.atk)[0]; return v.sort((a,b)=>b.def-a.def)[0]; },
+        endGame(winner) { this.gameOver = true; document.getElementById('result-screen').classList.remove('hidden'); document.getElementById('result-msg').innerText = winner === 'player' ? "YOU WIN!" : "YOU LOSE"; }
+    };
+    
+    // AI & UI (Simplified for length)
+    const AI={act(){if(Game.turn!=='cpu')return;const c=Game.cpu;const u=c.hand.map((x,i)=>({c:x,i})).filter(o=>o.c.data.type===TYPE.UNIT&&!c.units.some(k=>k&&k.data.name===o.c.data.name));if(u.length>0&&c.summonCount<2){u.sort((a,b)=>(b.c.atk+b.c.def)-(a.c.atk+a.c.def));const s=c.units.findIndex(k=>k===null);if(s!==-1){Game.playCard(c,u[0].i,null,s);setTimeout(()=>this.act(),600);return;}}const sp=c.hand.map((x,i)=>({c:x,i})).filter(o=>o.c.data.type!==TYPE.UNIT);if(sp.length>0){const s=sp[0];if(s.c.data.type===TYPE.REACT){const sl=c.reacts.findIndex(k=>k===null);if(sl!==-1)Game.playCard(c,s.i,null,sl);}else{let t=null;if(s.c.data.target===TARGET.ENEMY)t=Game.findBestTarget(Game.player.units,'ATK');if(s.c.data.target===TARGET.ALLY)t=Game.findBestTarget(c.units,'ATK');if(s.c.data.target===TARGET.NONE||t)Game.playCard(c,s.i,t);}}setTimeout(()=>Game.nextPhase(),1000);},battle(){if(Game.turn!=='cpu')return;const a=Game.cpu.units.filter(u=>u&&u.canAttack&&!u.hasAttacked);if(a.length===0){setTimeout(()=>Game.nextPhase(),500);return;}a.sort((x,y)=>y.atk-x.atk);const at=a[0];const e=Game.player.units.map((u,i)=>({u,i})).filter(o=>o.u);let ti=-2;if(e.length===0)ti=-1;else{const k=e.filter(x=>at.atk>x.u.def);if(k.length>0){k.sort((x,y)=>y.u.atk-x.u.atk);ti=k[0].i;}else{const tr=e.filter(x=>at.atk===x.u.def&&x.u.atk>=at.atk);if(tr.length>0)ti=tr[0].i;}}if(ti!==-2)Game.attack(at,ti);else at.hasAttacked=true;setTimeout(()=>this.battle(),1000);}};
+    const UI={update(){this.d();const p=document.getElementById('player-hand');p.innerHTML='';Game.player.hand.forEach((c,i)=>{const e=this.c(c);e.onclick=()=>{if(Game.turn!=='player'||Game.phase!==PHASE.MAIN)return;if(Game.selectedCard===c){if(c.data.target===TARGET.NONE&&c.data.type===TYPE.SPELL){Game.playCard(Game.player,i);Game.selectedCard=null;}else Game.selectedCard=null;}else Game.selectedCard=c;this.update();};if(Game.selectedCard===c)e.classList.add('selected');p.appendChild(e);});this.f('cpu-units',Game.cpu.units,'cpu',0);this.f('cpu-reacts',Game.cpu.reacts,'cpu',1);this.f('player-units',Game.player.units,'player',0);this.f('player-reacts',Game.player.reacts,'player',1);const b=document.getElementById('btn-next');if(Game.phase===PHASE.MAIN){b.innerText="Battle";b.disabled=Game.turn!=='player';}else if(Game.phase===PHASE.BATTLE){b.innerText="End Turn";b.disabled=Game.turn!=='player';}else{b.innerText="Wait";b.disabled=true;}},d(){document.getElementById('player-lp').innerText=Game.player.lp;document.getElementById('cpu-lp').innerText=Game.cpu.lp;document.getElementById('player-deck').innerText=Game.player.deck.length;document.getElementById('cpu-deck').innerText=Game.cpu.deck.length;document.getElementById('cpu-hand').innerText=Game.cpu.hand.length;document.getElementById('summon-cnt').innerText=Game.player.summonCount;document.getElementById('phase-badge').innerText=Game.phase;},f(id,l,o,r){const d=document.getElementById(id);const s=d.querySelectorAll('.slot');s.forEach((sl,i)=>{sl.innerHTML='';sl.className=r?'slot reaction':'slot';sl.onclick=null;const u=l[i];if(u){const e=this.c(u);if(o==='cpu'&&r)e.classList.add('face-down');if(u.hasAttacked||u.isLocked)e.classList.add('exhausted');if(u.destructionImmune)e.classList.add('immune');if(Game.selectedUnit===u)e.classList.add('selected');sl.appendChild(e);}if(Game.turn==='player'){if(Game.phase===PHASE.MAIN&&Game.selectedCard){const c=Game.selectedCard;const hi=Game.player.hand.indexOf(c);if(o==='player'&&!r&&!u&&c.data.type===TYPE.UNIT&&Game.player.summonCount<2&&!Game.player.units.some(k=>k&&k.data.name===c.data.name)){sl.classList.add('valid');sl.onclick=()=>{Game.playCard(Game.player,hi,null,i);Game.selectedCard=null;};}if(o==='player'&&r&&!u&&c.data.type===TYPE.REACT){sl.classList.add('valid');sl.onclick=()=>{Game.playCard(Game.player,hi,null,i);Game.selectedCard=null;};}if(((o==='player'&&c.data.target===TARGET.ALLY)||(o==='cpu'&&c.data.target===TARGET.ENEMY))&&!r&&u){sl.classList.add('valid');sl.onclick=()=>{Game.playCard(Game.player,hi,u);Game.selectedCard=null;};}}if(Game.phase===PHASE.BATTLE){if(o==='player'&&u&&!r&&u.canAttack&&!u.hasAttacked){sl.style.cursor='pointer';sl.onclick=(e)=>{e.stopPropagation();Game.selectedUnit=u;this.update();this.log("Target?");};}if(o==='cpu'&&!r&&u&&Game.selectedUnit){sl.classList.add('attack-target');sl.onclick=()=>{Game.attack(Game.selectedUnit,i);Game.selectedUnit=null;};}}}});if(o==='cpu'&&!r&&Game.phase===PHASE.BATTLE&&Game.selectedUnit&&!l.some(u=>u)){d.style.cursor='crosshair';d.onclick=(e)=>{if(e.target===d){Game.attack(Game.selectedUnit,-1);Game.selectedUnit=null;}};}},c(c){const e=document.createElement('div');e.className=`card ${c.data.type.toLowerCase()}`;e.innerHTML=`<div class="card-name">${c.data.name}</div><div class="card-art">${c.data.icon}</div><div class="card-stats">${c.data.type===TYPE.UNIT?`<span class="val-atk">⚔${c.atk}</span><span class="val-def">🛡${c.def}</span>`:''}</div>`;return e;},log(m){const d=document.createElement('div');d.className='log-line';d.innerText=m;document.getElementById('log-panel').prepend(d);}};
+</script>
 </body>
 </html>
